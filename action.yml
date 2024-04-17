@@ -1,0 +1,5 @@
+name: 'Validate CODEOWNERS'
+description: 'GitHub Action to validate CODEOWNERS in the repository'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
