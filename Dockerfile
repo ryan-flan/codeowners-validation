@@ -1,20 +1,8 @@
-# Build stage
-FROM rust:slim AS builder
-
-WORKDIR /code
-
+FROM rust:latest as builder
+WORKDIR /usr/src/codeowners-validation
 COPY . .
-
 RUN cargo build --release
 
-# Final stage
-FROM debian:bookworm-slim 
-
-WORKDIR /code
-
-COPY --from=builder /code/target/release/codeowners-validation .
-
-RUN chmod +x codeowners-validation
-
-ENTRYPOINT ["./codeowners-validation"]
-
+FROM debian:bookworm-slim
+COPY --from=builder /usr/src/codeowners-validation/target/release/codeowners-validation /usr/local/bin/codeowners-validation
+CMD ["codeowners-validation"]
