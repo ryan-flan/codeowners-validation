@@ -8,32 +8,35 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  check:
-    runs-on: ubuntu-latest
+  install:
+    name: Rust ${{matrix.rust}} on ${{matrix.os == 'ubuntu' && 'Linux' || '???'}}
+    runs-on: ${{matrix.os}}-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu]
+        rust: [nightly, beta, stable]
+        include:
+          - os: ubuntu
+            rust: 1.0.0
+    timeout-minutes: 5
     steps:
-      - name: Check out
-        uses: actions/checkout@v3
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: ${{ inputs.rust-version }}
-          override: true
-          components: rustfmt, clippy
-      - name: Set up cargo cache
-        uses: actions/cache@v3
-        continue-on-error: false
+      - uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/bin/
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-            target/            
+            target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-
+      - uses: actions/checkout@v4
+      - uses: ./
+        name: Run dtolnay/rust-toolchain${{contains(matrix.rust, ' ') && ' for ' || '@'}}${{matrix.rust}}
+        id: toolchain
+        with:
+          toolchain: ${{matrix.rust}}
       - name: Lint
-        run: |
-          cargo check
+        run: cargo check
       - name: Test
         run: cargo test
