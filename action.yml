@@ -3,3 +3,5 @@ description: 'GitHub Action to validate CODEOWNERS in the repository'
 runs:
   using: 'docker'
   image: 'Dockerfile'
+icon: 'alert-triangle'
+color: 'orange'
