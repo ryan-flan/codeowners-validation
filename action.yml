@@ -2,6 +2,7 @@ name: 'Validate CODEOWNERS'
 description: 'GitHub Action to validate CODEOWNERS in the repository'
 runs:
   using: 'docker'
-  image: 'Dockerfile'
-icon: 'alert-triangle'
-color: 'orange'
+  image: 'docker://ghcr.io/ryan-flan/codeowners-validation:v0.1.0'
+branding:
+  icon: 'shield'
+  color: 'orange'
