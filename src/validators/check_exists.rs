@@ -14,20 +14,13 @@ pub struct ValidationResult {
 pub fn validate_directory(
     path: &Path,
     rules: Vec<CodeOwnerRule>,
-) -> Result<HashMap<String, ValidationResult>, Box<dyn std::error::Error>> {
+) -> Result<Vec<CodeOwnerRule>, Box<dyn std::error::Error>> {
     let mut builder = GlobSetBuilder::new();
-    let mut rule_map = HashMap::new();
+    let mut rule_map: HashMap<String, (CodeOwnerRule, bool)> = HashMap::new();
 
     for rule in &rules {
         builder.add(rule.glob.clone());
-        rule_map.insert(
-            rule.pattern.clone(),
-            ValidationResult {
-                matched: false,
-                owners: rule.owners.clone(),
-                original_path: rule.original_path.clone(),
-            },
-        );
+        rule_map.insert(rule.pattern.clone(), (rule.clone(), false));
     }
 
     let globset = builder.build()?;
@@ -49,17 +42,22 @@ pub fn validate_directory(
 
             for matching_rule in matching_rules {
                 if let Some(result) = rule_map.get_mut(&matching_rule.pattern) {
-                    result.matched = true;
+                    result.1 = true;
                 }
             }
         }
 
-        if rule_map.values().all(|result| result.matched) {
+        if rule_map.values().all(|result| result.1) {
             break;
         }
     }
+    let failures: Vec<CodeOwnerRule> = rule_map
+        .into_iter()
+        .filter(|(_, (_, is_valid))| !is_valid)
+        .map(|(_, (rule, _))| rule)
+        .collect();
 
-    Ok(rule_map)
+    Ok(failures)
 }
 
 fn normalize_path<P: AsRef<Path>>(path: P) -> PathBuf {
