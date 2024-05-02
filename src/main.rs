@@ -41,19 +41,17 @@ fn main() -> io::Result<()> {
 
     // Check if any files failed the validation
     let mut failed_files = Vec::new();
-    for (pattern, result) in results {
-        if !result.matched {
-            failed_files.push((pattern, result.original_path, result.owners));
-        }
+    for result in results {
+        failed_files.push(result);
     }
 
     // If there are failed files, print them nicely to stdout
     if !failed_files.is_empty() {
         println!("The following files failed the check_exists validation:");
-        for (pattern, original_path, owners) in failed_files {
-            println!("  Pattern: {}", pattern);
-            println!("    Rule: {}", original_path);
-            println!("    Owners: {:?}", owners);
+        for rule in failed_files {
+            println!("  Pattern: {}", rule.pattern);
+            println!("    Rule: {}", rule.original_path);
+            println!("    Owners: {:?}", rule.owners);
             println!();
         }
         return Err(io::Error::new(

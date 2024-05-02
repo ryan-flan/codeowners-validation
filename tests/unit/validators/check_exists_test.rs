@@ -1,7 +1,6 @@
 use codeowners_validation::parser::CodeOwnerRule;
 use codeowners_validation::validators::check_exists;
 use globset::Glob;
-use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 use tempfile::tempdir;
@@ -68,19 +67,14 @@ fn create_rules() -> Vec<CodeOwnerRule> {
     ]
 }
 
-fn assert_results(
-    result: &HashMap<String, check_exists::ValidationResult>,
-    expected_matches: &[bool],
-) {
-    assert_eq!(result.len(), 8);
-    assert_eq!(result["*.rs"].matched, expected_matches[0]);
-    assert_eq!(result["examples/*"].matched, expected_matches[1]);
-    assert_eq!(result["config.rs"].matched, expected_matches[2]);
-    assert_eq!(result["src/**/main.rs"].matched, expected_matches[3]);
-    assert_eq!(result["src/**/modules/api/"].matched, expected_matches[4]);
-    assert_eq!(result["src/**/utils/*.rs"].matched, expected_matches[5]);
-    assert_eq!(result["tests/**/integration/"].matched, expected_matches[6]);
-    assert_eq!(result["examples*/"].matched, expected_matches[7]);
+fn assert_results(result: &[CodeOwnerRule], expected_patterns: &[&str]) {
+    let mut sorted_result: Vec<&str> = result.iter().map(|rule| rule.pattern.as_str()).collect();
+    let mut sorted_expected_patterns: Vec<&str> = expected_patterns.to_vec();
+
+    sorted_result.sort();
+    sorted_expected_patterns.sort();
+
+    assert_eq!(sorted_result, sorted_expected_patterns);
 }
 
 #[cfg(test)]
@@ -112,7 +106,7 @@ mod tests {
 
         let result = check_exists::validate_directory(repo_path, rules).unwrap();
 
-        assert_results(&result, &[true, true, true, true, true, true, true, true]);
+        assert_eq!(result.len(), 0);
     }
 
     #[test]
@@ -138,9 +132,14 @@ mod tests {
 
         let result = check_exists::validate_directory(repo_path, rules).unwrap();
 
-        assert_results(
-            &result,
-            &[false, true, false, false, true, false, false, true],
-        );
+        let expected_patterns = [
+            "*.rs",
+            "config.rs",
+            "src/**/main.rs",
+            "src/**/utils/*.rs",
+            "tests/**/integration/",
+        ];
+
+        assert_results(&result, &expected_patterns);
     }
 }
