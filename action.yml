@@ -2,17 +2,17 @@ name: 'Validate CODEOWNERS'
 description: 'GitHub Action to validate CODEOWNERS in the repository'
 inputs:
   checks:
-    description: 'Select the checks to run (leave empty to run all checks)'
+    description: 'Select the checks to run (comma-separated)'
     required: false
     default: ''
     type: 'string'
 runs:
   using: 'docker'
-  image: 'docker://ghcr.io/ryan-flan/codeowners-validation:v0.2.0'
+  image: 'Dockerfile'
   args:
-    - ${{ contains(inputs.checks, 'check_exists') && '--check-exists' || '' }}
-    - ${{ contains(inputs.checks, 'duplicate_patterns') && '--duplicate-patterns' || '' }}
-    - ${{ inputs.checks == '' && '--all' || '' }}
+    - ${{ inputs.checks == '' && '--all' || ''}}
+    - ${{ contains(inputs.checks, 'check_exists') && '--check-exists' || ''}}
+    - ${{ contains(inputs.checks, 'duplicate_patterns') && '--duplicate-patterns' || ''}}
 branding:
   icon: 'shield'
   color: 'orange'
