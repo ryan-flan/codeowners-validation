@@ -4,15 +4,15 @@ inputs:
   checks:
     description: 'Select the checks to run (comma-separated)'
     required: false
-    default: ''
+    default: 'all'
     type: 'string'
 runs:
   using: 'docker'
   image: 'Dockerfile'
   args:
-    - ${{ inputs.checks == '' && '--all' || ''}}
-    - ${{ contains(inputs.checks, 'check_exists') && '--check-exists' || ''}}
-    - ${{ contains(inputs.checks, 'duplicate_patterns') && '--duplicate-patterns' || ''}}
+    - ${{ contains(inputs.checks, 'all') || inputs.checks == '' || '--all' }}
+    - ${{ contains(inputs.checks, 'check_exists') && '--check-exists' }}
+    - ${{ contains(inputs.checks, 'duplicate_patterns') && '--duplicate-patterns' }}
 branding:
   icon: 'shield'
   color: 'orange'
