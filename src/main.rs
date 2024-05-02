@@ -1,12 +1,19 @@
-use codeowners_validation::parser::{parse_codeowners_file, CodeOwnerRule};
-use codeowners_validation::validators::check_exists::validate_directory;
-use codeowners_validation::validators::duplicate_patterns::validate_duplicates;
+use clap::Parser;
+use codeowners_validation::parser::parse_codeowners_file;
+use codeowners_validation::validators::validator::{run_validator, ValidatorArgs};
 use std::io;
-use std::path::Path;
+
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Args {
+    #[command(flatten)]
+    validator_args: ValidatorArgs,
+}
 
 fn main() -> io::Result<()> {
+    let args = Args::parse();
+
     let codeowners_file_path = ".github/CODEOWNERS";
-    let repo_dir = Path::new(".");
 
     // Parse the CODEOWNERS file
     let (rules, invalid_lines) = match parse_codeowners_file(codeowners_file_path) {
@@ -32,25 +39,7 @@ fn main() -> io::Result<()> {
         ));
     }
 
-    let mut failed_rules: Vec<(String, CodeOwnerRule)> = Vec::new();
-
-    // Run the check_exists validation
-    match validate_directory(repo_dir, rules.clone()) {
-        Ok(failures) => {
-            for rule in failures {
-                failed_rules.push(("check_exists".to_string(), rule));
-            }
-        }
-        Err(e) => {
-            eprintln!("Error validating directory: {}", e);
-            return Err(io::Error::new(io::ErrorKind::Other, e.to_string()));
-        }
-    }
-
-    // Run the duplicate_patterns validation
-    for rule in validate_duplicates(&rules) {
-        failed_rules.push(("duplicate_patterns".to_string(), rule));
-    }
+    let failed_rules = run_validator(&args.validator_args, &rules);
 
     if !failed_rules.is_empty() {
         eprintln!("The following rules failed validation:");

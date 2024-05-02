@@ -1,7 +1,7 @@
 use crate::parser::CodeOwnerRule;
 use std::collections::HashSet;
 
-pub fn validate_duplicates(rules: &[CodeOwnerRule]) -> Vec<CodeOwnerRule> {
+pub(super) fn validate_duplicates(rules: &[CodeOwnerRule]) -> Vec<CodeOwnerRule> {
     let mut pattern_set = HashSet::new();
     let mut original_path_set = HashSet::new();
     let mut duplicates = Vec::new();

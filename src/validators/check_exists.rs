@@ -5,13 +5,7 @@ use walkdir::WalkDir;
 
 use crate::parser::CodeOwnerRule;
 
-pub struct ValidationResult {
-    pub matched: bool,
-    pub owners: Vec<String>,
-    pub original_path: String,
-}
-
-pub fn validate_directory(
+pub(super) fn validate_directory(
     path: &Path,
     rules: Vec<CodeOwnerRule>,
 ) -> Result<Vec<CodeOwnerRule>, Box<dyn std::error::Error>> {
