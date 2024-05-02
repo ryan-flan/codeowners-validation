@@ -14,4 +14,4 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run CODEOWNERS validation 
-        uses: ryanjamesflanagan/codeowners-validation@main
+        uses: ryanjamesflanagan/codeowners-validation@v0.2.0
