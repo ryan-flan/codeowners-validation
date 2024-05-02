@@ -1,5 +1,6 @@
-use codeowners_validation::parser::parse_codeowners_file;
+use codeowners_validation::parser::{parse_codeowners_file, CodeOwnerRule};
 use codeowners_validation::validators::check_exists::validate_directory;
+use codeowners_validation::validators::duplicate_patterns::validate_duplicates;
 use std::io;
 use std::path::Path;
 
@@ -31,32 +32,39 @@ fn main() -> io::Result<()> {
         ));
     }
 
-    let results = match validate_directory(repo_dir, rules) {
-        Ok(results) => results,
+    let mut failed_rules: Vec<(String, CodeOwnerRule)> = Vec::new();
+
+    // Run the check_exists validation
+    match validate_directory(repo_dir, rules.clone()) {
+        Ok(failures) => {
+            for rule in failures {
+                failed_rules.push(("check_exists".to_string(), rule));
+            }
+        }
         Err(e) => {
             eprintln!("Error validating directory: {}", e);
             return Err(io::Error::new(io::ErrorKind::Other, e.to_string()));
         }
-    };
-
-    // Check if any files failed the validation
-    let mut failed_files = Vec::new();
-    for result in results {
-        failed_files.push(result);
     }
 
-    // If there are failed files, print them nicely to stdout
-    if !failed_files.is_empty() {
-        println!("The following files failed the check_exists validation:");
-        for rule in failed_files {
-            println!("  Pattern: {}", rule.pattern);
-            println!("    Rule: {}", rule.original_path);
-            println!("    Owners: {:?}", rule.owners);
-            println!();
+    // Run the duplicate_patterns validation
+    for rule in validate_duplicates(&rules) {
+        failed_rules.push(("duplicate_patterns".to_string(), rule));
+    }
+
+    if !failed_rules.is_empty() {
+        eprintln!("The following rules failed validation:");
+        eprintln!();
+        for (validator, rule) in &failed_rules {
+            eprintln!("Validator: {}", validator);
+            eprintln!("  Pattern: {}", rule.pattern);
+            eprintln!("    Rule: {}", rule.original_path);
+            eprintln!("    Owners: {:?}", rule.owners);
+            eprintln!();
         }
         return Err(io::Error::new(
             io::ErrorKind::InvalidData,
-            "Some files failed the check_exists validation",
+            "Some rules failed validation",
         ));
     }
 
