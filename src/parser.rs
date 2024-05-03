@@ -2,7 +2,7 @@ use globset::Glob;
 use std::fs::File;
 use std::io::{self, BufRead};
 
-#[derive(Eq, PartialEq, Clone)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct CodeOwnerRule {
     pub pattern: String,
     pub owners: Vec<String>,

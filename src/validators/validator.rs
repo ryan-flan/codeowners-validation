@@ -1,4 +1,5 @@
 use crate::parser::CodeOwnerRule;
+use crate::validators::avoid_shadowing::validate_avoid_shadowing;
 use crate::validators::duplicate_patterns::validate_duplicates;
 use crate::validators::exists::validate_directory;
 use std::path::Path;
@@ -8,6 +9,7 @@ use std::time;
 pub struct ValidatorArgs {
     pub exists: bool,
     pub duplicate_patterns: bool,
+    pub avoid_shadowing: bool,
 }
 
 impl ValidatorArgs {
@@ -18,6 +20,7 @@ impl ValidatorArgs {
             match arg.trim() {
                 "exists" => args.exists = true,
                 "duplicate_patterns" => args.duplicate_patterns = true,
+                "avoid_shadowing" => args.avoid_shadowing = true,
                 _ => (),
             }
         }
@@ -26,7 +29,7 @@ impl ValidatorArgs {
     }
 
     pub fn should_run_all(&self) -> bool {
-        !self.exists && !self.duplicate_patterns
+        !self.exists && !self.duplicate_patterns && !self.avoid_shadowing
     }
 }
 
@@ -42,12 +45,14 @@ pub fn run_validator(
             validate_directory(repo_dir, rules.to_vec()).unwrap_or_default()
         }),
         ("duplicate_patterns", validate_duplicates),
+        ("avoid_shadowing", validate_avoid_shadowing),
     ];
 
     for (name, validator_fn) in validators {
         if args.should_run_all()
             || (name == "exists" && args.exists)
             || (name == "duplicate_patterns" && args.duplicate_patterns)
+            || (name == "avoid_shadowing" && args.avoid_shadowing)
         {
             let now = time::Instant::now();
             for rule in validator_fn(rules) {
