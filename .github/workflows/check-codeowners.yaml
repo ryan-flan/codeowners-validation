@@ -15,3 +15,7 @@ jobs:
 
       - name: Run CODEOWNERS validation 
         uses: ryanjamesflanagan/codeowners-validation@v0.2.0
+        with:
+          checks: |
+            "exists"
+            "duplicate_patterns"
