@@ -1,13 +1,11 @@
 [package]
 name = "codeowners-validation"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
-
-[dependencies]
-glob = "0.3"
-walkdir = "2"
-globset = "0.4"
-clap = {version = "4.5.4", features = ["derive"]}
 
 [dev-dependencies]
 tempfile = "3.2.0"
+
+[dependencies]
+globset = "0.4.14"
+walkdir = "2.5.0"
