@@ -1,12 +1,12 @@
 use crate::parser::CodeOwnerRule;
-use crate::validators::check_exists::validate_directory;
 use crate::validators::duplicate_patterns::validate_duplicates;
+use crate::validators::exists::validate_directory;
 use std::path::Path;
 use std::time;
 
 #[derive(Debug, Clone, Default)]
 pub struct ValidatorArgs {
-    pub check_exists: bool,
+    pub exists: bool,
     pub duplicate_patterns: bool,
 }
 
@@ -16,7 +16,7 @@ impl ValidatorArgs {
 
         for arg in args_str.split(',') {
             match arg.trim() {
-                "check_exists" => args.check_exists = true,
+                "exists" => args.exists = true,
                 "duplicate_patterns" => args.duplicate_patterns = true,
                 _ => (),
             }
@@ -26,7 +26,7 @@ impl ValidatorArgs {
     }
 
     pub fn should_run_all(&self) -> bool {
-        !self.check_exists && !self.duplicate_patterns
+        !self.exists && !self.duplicate_patterns
     }
 }
 
@@ -37,7 +37,7 @@ pub fn run_validator(
     let mut failed_rules = Vec::new();
 
     let validators: Vec<(&str, fn(&[CodeOwnerRule]) -> Vec<CodeOwnerRule>)> = vec![
-        ("check_exists", |rules| {
+        ("exists", |rules| {
             let repo_dir = Path::new(".");
             validate_directory(repo_dir, rules.to_vec()).unwrap_or_default()
         }),
@@ -46,7 +46,7 @@ pub fn run_validator(
 
     for (name, validator_fn) in validators {
         if args.should_run_all()
-            || (name == "check_exists" && args.check_exists)
+            || (name == "exists" && args.exists)
             || (name == "duplicate_patterns" && args.duplicate_patterns)
         {
             let now = time::Instant::now();

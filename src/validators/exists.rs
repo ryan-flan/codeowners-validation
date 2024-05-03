@@ -68,7 +68,7 @@ fn normalize_path<P: AsRef<Path>>(path: P) -> PathBuf {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::validators::check_exists;
+    use crate::validators::exists::validate_directory;
     use globset::Glob;
     use std::fs;
     use tempfile::tempdir;
@@ -168,7 +168,7 @@ mod tests {
 
         let rules = create_rules();
 
-        let result = check_exists::validate_directory(repo_path, rules).unwrap();
+        let result = validate_directory(repo_path, rules).unwrap();
 
         assert_eq!(result.len(), 0);
     }
@@ -194,7 +194,7 @@ mod tests {
 
         let rules = create_rules();
 
-        let result = check_exists::validate_directory(repo_path, rules).unwrap();
+        let result = validate_directory(repo_path, rules).unwrap();
 
         let expected_patterns = [
             "*.rs",
