@@ -2,6 +2,7 @@ use crate::parser::CodeOwnerRule;
 use crate::validators::check_exists::validate_directory;
 use crate::validators::duplicate_patterns::validate_duplicates;
 use std::path::Path;
+use std::time;
 
 #[derive(Debug, Clone, Default)]
 pub struct ValidatorArgs {
@@ -48,9 +49,11 @@ pub fn run_validator(
             || (name == "check_exists" && args.check_exists)
             || (name == "duplicate_patterns" && args.duplicate_patterns)
         {
+            let now = time::Instant::now();
             for rule in validator_fn(rules) {
                 failed_rules.push((name.to_string(), rule));
             }
+            println!("{} validation run in {:?}", name, now.elapsed());
         }
     }
 
