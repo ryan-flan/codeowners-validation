@@ -1,21 +1,29 @@
 use crate::parser::CodeOwnerRule;
 use crate::validators::check_exists::validate_directory;
 use crate::validators::duplicate_patterns::validate_duplicates;
-use clap::{ArgAction, Args};
 use std::path::Path;
 
-#[derive(Args, Debug, Clone, Default)]
+#[derive(Debug, Clone, Default)]
 pub struct ValidatorArgs {
-    /// Run the check_exists validator
-    #[arg(long, action = ArgAction::SetTrue, default_value_t = false)]
     pub check_exists: bool,
-
-    /// Run the duplicate_patterns validator
-    #[arg(long, action = ArgAction::SetTrue, default_value_t = false)]
     pub duplicate_patterns: bool,
 }
 
 impl ValidatorArgs {
+    pub fn from_env(args_str: &str) -> Self {
+        let mut args = ValidatorArgs::default();
+
+        for arg in args_str.split(',') {
+            match arg.trim() {
+                "check_exists" => args.check_exists = true,
+                "duplicate_patterns" => args.duplicate_patterns = true,
+                _ => (),
+            }
+        }
+
+        args
+    }
+
     pub fn should_run_all(&self) -> bool {
         !self.check_exists && !self.duplicate_patterns
     }

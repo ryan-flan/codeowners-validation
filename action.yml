@@ -5,14 +5,12 @@ inputs:
     description: 'Select the checks to run (comma-separated)'
     required: false
     default: 'all'
-    type: 'string'
+    type: string
 runs:
   using: 'docker'
-  image: 'Dockerfile'
-  args:
-    - ${{ contains(inputs.checks, 'all') || inputs.checks == '' || '--all' }}
-    - ${{ contains(inputs.checks, 'check_exists') && '--check-exists' }}
-    - ${{ contains(inputs.checks, 'duplicate_patterns') && '--duplicate-patterns' }}
+  image: 'docker://ghcr.io/ryan-flan/codeowners-validation:v0.2.0' 
+  env:
+    ENVS_PREFIX: "INPUT"
 branding:
   icon: 'shield'
   color: 'orange'

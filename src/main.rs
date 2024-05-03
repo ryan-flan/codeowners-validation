@@ -1,17 +1,13 @@
-use clap::Parser;
 use codeowners_validation::parser::parse_codeowners_file;
 use codeowners_validation::validators::validator::{run_validator, ValidatorArgs};
+use std::env;
 use std::io;
 
-#[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
-struct Args {
-    #[command(flatten)]
-    validator_args: ValidatorArgs,
-}
-
 fn main() -> io::Result<()> {
-    let args = Args::parse();
+    let validator_args = match env::var("INPUT_CHECKS") {
+        Ok(args_str) => ValidatorArgs::from_env(&args_str),
+        Err(_) => ValidatorArgs::default(),
+    };
 
     let codeowners_file_path = ".github/CODEOWNERS";
 
@@ -39,7 +35,7 @@ fn main() -> io::Result<()> {
         ));
     }
 
-    let failed_rules = run_validator(&args.validator_args, &rules);
+    let failed_rules = run_validator(&validator_args, &rules);
 
     if !failed_rules.is_empty() {
         eprintln!("The following rules failed validation:");
