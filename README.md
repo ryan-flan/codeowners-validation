@@ -39,7 +39,12 @@ To use the CODEOWNERS Validation GitHub Action in your repository, follow these 
          - uses: actions/checkout@v4
 
          - name: Run CODEOWNERS Validation
-           uses: ryan-flan/codeowners-validation@v0.2.0
+           uses: ryan-flan/codeowners-validation@v0.2.1
+           with:
+             # By default, it will run all validators, the syntax "exists,duplicate_patterns" also works.
+             checks: |
+               "exists"
+               "duplicate_patterns"
    ```
    
 Now, whenever a push or pull request is made to the main branch, the CODEOWNERS Validation GitHub Action will automatically run and validate the CODEOWNERS file.
