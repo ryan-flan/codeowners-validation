@@ -3,13 +3,15 @@
 
 # CODEOWNERS Validation
 
+Optimised for large repos or monorepos, ensuring files exist for rules specified in the CODEOWNERS file.
+
 Active checks:
 - Checks the files and directories mentioned in the `CODEOWNERS` file actually exist in the repository.
-
+- Check duplicate patterns
+  
 TODO:
 - Check files not owned
 - Check owners exist in GitHub
-- Check duplicate patterns
 - Check syntax
 
 ## Currently useable as a GitHub Action
