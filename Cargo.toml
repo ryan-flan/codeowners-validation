@@ -1,12 +1,20 @@
 [package]
 name = "codeowners-validation"
-version = "0.2.1"
+version = "0.3.0"
 edition = "2021"
-
-[dev-dependencies]
-tempfile = "3.19.1"
+authors = ["Ryan Flanagan"] 
+description = "A Rust library for validating CODEOWNERS files."
+repository = "https://github.com/ryan-flan/codeowners-validation"
+license = "MIT OR Apache-2.0"
+keywords = ["codeowners", "validation"]
+categories = ["development-tools", "file-system"]
+readme = "README.md"
 
 [dependencies]
 globset = "0.4.16"
 ignore = "0.4.23"
 walkdir = "2.5.0"
+
+[dev-dependencies]
+tempfile = "3.19.1"
+
