@@ -7,7 +7,7 @@ description = "A Rust library for validating CODEOWNERS files."
 repository = "https://github.com/ryan-flan/codeowners-validation"
 license = "MIT OR Apache-2.0"
 keywords = ["codeowners", "validation"]
-categories = ["development-tools", "file-system"]
+categories = ["development-tools", "filesystem"]
 readme = "README.md"
 
 [dependencies]
