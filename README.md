@@ -43,7 +43,7 @@ To use the CODEOWNERS Validation GitHub Action in your repository, follow these 
          - uses: actions/checkout@v4
 
          - name: Run CODEOWNERS Validation
-           uses: ryan-flan/codeowners-validation@v0.2.1
+           uses: ryan-flan/codeowners-validation@v0.3.1
            with:
              # By default, it will run all validators, the syntax "exists,duplicate_patterns" also works.
              checks: |
