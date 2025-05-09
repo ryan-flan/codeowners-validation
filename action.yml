@@ -19,11 +19,13 @@ runs:
 
     - name: Install CODEOWNERS Validation
       run: cargo install codeowners-validation
+      shell: bash
 
     - name: Run CODEOWNERS Validation
       run: codeowners-validation "${{ inputs.checks }}"
       env:
         CARGO_TERM_COLOR: always
+      shell: bash
 
 branding:
   icon: 'shield'
