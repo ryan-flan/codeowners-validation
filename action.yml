@@ -6,11 +6,26 @@ inputs:
     required: false
     default: 'all'
     type: string
+
 runs:
-  using: 'docker'
-  image: 'docker://ghcr.io/ryan-flan/codeowners-validation:v0.2.1'
-  env:
-    ENVS_PREFIX: "INPUT"
+  using: 'composite'
+  steps:
+    - name: Set up Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
+        override: true
+
+    - name: Install CODEOWNERS Validation
+      run: cargo install codeowners-validation
+
+    - name: Run CODEOWNERS Validation
+      run: codeowners-validation "${{ inputs.checks }}"
+      env:
+        CARGO_TERM_COLOR: always
+
 branding:
   icon: 'shield'
   color: 'orange'
+
