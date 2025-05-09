@@ -39,7 +39,7 @@ pub fn run_validator(
     let validators: Vec<(&str, fn(&[CodeOwnerRule]) -> Vec<CodeOwnerRule>)> = vec![
         ("exists", |rules| {
             let repo_dir = Path::new(".");
-            validate_directory(repo_dir, rules.to_vec()).unwrap_or_default()
+            validate_directory(repo_dir, rules).unwrap_or_default()
         }),
         ("duplicate_patterns", validate_duplicates),
     ];
