@@ -1,5 +1,7 @@
 ![build](https://github.com/ryan-flan/codeowners-validation/actions/workflows/ci.yml/badge.svg)
 ![codeowners](https://github.com/ryan-flan/codeowners-validation/actions/workflows/check-codeowners.yaml/badge.svg)
+![Crates.io](https://img.shields.io/crates/v/codeowners-validation)
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/ryan-flan/codeowners-validation/publish.yml)
 
 # CODEOWNERS Validation
 

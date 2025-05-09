@@ -1,27 +1,46 @@
-name: Cargo Build & Test
+name: CI/CD
 
 on:
   push:
+    branches:
+      - main
+      - 'releases/**'
+      - '**'
+    tags:
+      - "v*"
   pull_request:
+    branches:
+      - main
+      - 'releases/**'
+      - '**'
 
 env: 
   CARGO_TERM_COLOR: always
+  CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
 jobs:
-  install:
-    name: Rust ${{matrix.rust}} on ${{matrix.os == 'ubuntu' && 'Linux' || '???'}}
-    runs-on: ${{matrix.os}}-latest
+  build-and-test:
+    name: Build and Test Rust Crate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu]
         rust: [nightly, beta, stable]
-        include:
-          - os: ubuntu
-            rust: 1.0.0
-    timeout-minutes: 5
     steps:
-      - uses: actions/cache@v4
+      - name: Check out code
+        uses: actions/checkout@v4
+        
+      - name: Set up Rust ${{ matrix.rust }}
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
+          override: true
+
+      - name: Cache Cargo
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/bin/
@@ -30,13 +49,50 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-      - uses: actions/checkout@v4
-      - uses: ./
-        name: Run dtolnay/rust-toolchain${{contains(matrix.rust, ' ') && ' for ' || '@'}}${{matrix.rust}}
-        id: toolchain
-        with:
-          toolchain: ${{matrix.rust}}
+
       - name: Lint
         run: cargo check
-      - name: Test
-        run: cargo test
+
+      - name: Run Tests
+        run: cargo test --all-features
+
+  validate-codeowners:
+    name: Validate CODEOWNERS
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run CODEOWNERS validation
+        uses: ryanjamesflanagan/codeowners-validation@v0.2.0
+        with:
+          checks: |
+            "exists"
+            "duplicate_patterns"
+
+  publish:
+    name: Publish to crates.io
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    needs: build-and-test
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Publish to crates.io
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: cargo publish
+
