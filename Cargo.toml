@@ -10,6 +10,12 @@ keywords = ["codeowners", "validation"]
 categories = ["development-tools", "filesystem"]
 readme = "README.md"
 
+[release]
+tag_prefix = "v"
+tag_message = "Release {{version}}"
+push = true
+publish = true
+
 [dependencies]
 globset = "0.4.16"
 ignore = "0.4.23"
