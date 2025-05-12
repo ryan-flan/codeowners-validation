@@ -10,7 +10,7 @@ inputs:
 
 runs:
   using: 'docker'
-  image: 'ghcr.io/ryan-flan/codeowners-validation:latest'
+  image: 'docker://ghcr.io/ryan-flan/codeowners-validation:latest'
   args:
     - ${{ inputs.checks }}
 
