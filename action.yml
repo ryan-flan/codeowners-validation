@@ -9,25 +9,10 @@ inputs:
     type: string
 
 runs:
-  using: 'composite'
-  steps:
-    - name: Set up Rust
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: stable
-        override: true
-
-    - name: Install CODEOWNERS Validation
-      run: |
-        cargo install --locked codeowners-validation
-      shell: bash
-
-    - name: Run CODEOWNERS Validation
-      run: codeowners-validation "${{ inputs.checks }}"
-      env:
-        CARGO_TERM_COLOR: always
-      shell: bash
+  using: 'docker'
+  image: 'ghcr.io/ryan-flan/codeowners-validation:latest'
+  args:
+    - ${{ inputs.checks }}
 
 branding:
   icon: 'shield'
