@@ -18,7 +18,7 @@ env:
 jobs:
   build-and-test:
     name: Build and Test Rust Crate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latestci
     permissions:
       contents: read
     strategy:
@@ -97,7 +97,7 @@ jobs:
         id: pkg
         run: |
           version=$(cargo metadata --format-version 1 | jq -r '.packages[] | select(.name == "codeowners-validation") | .version')
-          echo "package_version=$version" >> $GITHUB_OUTPUT
+          echo "package_version=v$version" >> $GITHUB_OUTPUT
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v3
