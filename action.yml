@@ -1,5 +1,6 @@
 name: 'Validate CODEOWNERS'
 description: 'GitHub Action to validate CODEOWNERS in the repository'
+
 inputs:
   checks:
     description: 'Select the checks to run (comma-separated)'
@@ -17,23 +18,9 @@ runs:
         toolchain: stable
         override: true
 
-    - name: Cache Cargo
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          target/
-        key: cargo-cache-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: |
-          cargo-cache-${{ runner.os }}-
-
-    - name: Install CODEOWNERS Validation (if needed)
-      id: install
+    - name: Install CODEOWNERS Validation
       run: |
-        if ! command -v codeowners-validation > /dev/null; then
-          cargo install codeowners-validation
-        fi
+        cargo install --locked codeowners-validation
       shell: bash
 
     - name: Run CODEOWNERS Validation

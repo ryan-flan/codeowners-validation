@@ -7,14 +7,14 @@ on:
       - 'releases/**'
       - '**'
     tags:
-      - "v*"
+      - 'v*'
   pull_request:
     branches:
       - main
       - 'releases/**'
       - '**'
 
-env: 
+env:
   CARGO_TERM_COLOR: always
   CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
@@ -31,7 +31,7 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v4
-        
+
       - name: Set up Rust ${{ matrix.rust }}
         uses: actions-rs/toolchain@v1
         with:
@@ -49,6 +49,8 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
 
       - name: Lint
         run: cargo check
@@ -62,37 +64,32 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Run CODEOWNERS validation
-        uses: ryanjamesflanagan/codeowners-validation@v0.3.0
-        with:
-          checks: |
-            "exists"
-            "duplicate_patterns"
-
-  publish:
-    name: Publish to crates.io
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    needs: build-and-test
-    if: startsWith(github.ref, 'refs/tags/v')
-    steps:
       - name: Check out code
         uses: actions/checkout@v4
 
-      - name: Set up Rust
-        uses: actions-rs/toolchain@v1
+      - name: Cache Rust dependencies
+        uses: actions/cache@v4
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: ${{ runner.os }}-cargo-deps-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-deps-
 
-      - name: Publish to crates.io
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-        run: cargo publish
+      - name: Cache CODEOWNERS validator binary
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/codeowners-validation
+          key: ${{ runner.os }}-codeowners-bin-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-codeowners-bin-
+
+      - name: Run CODEOWNERS validation
+        uses: ryan-flan/codeowners-validation@v0.3.1
+        with:
+          checks: |
+            exists
+            duplicate_patterns
 
