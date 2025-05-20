@@ -62,3 +62,57 @@ pub fn parse_codeowners_file(
 
     Ok((rules, invalid_lines))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs::write;
+    use tempfile::NamedTempFile;
+
+    fn with_temp_codeowners(content: &str) -> NamedTempFile {
+        let file = NamedTempFile::new().unwrap();
+        write(file.path(), content).unwrap();
+        file
+    }
+
+    #[test]
+    fn parses_valid_lines() {
+        let file = with_temp_codeowners("src/lib.rs @alice\n");
+        let (rules, invalids) = parse_codeowners_file(file.path().to_str().unwrap()).unwrap();
+        assert_eq!(rules.len(), 1);
+        assert_eq!(rules[0].pattern, "src/lib.rs");
+        assert_eq!(rules[0].owners, vec!["@alice"]);
+        assert!(invalids.is_empty());
+    }
+
+    #[test]
+    fn ignores_comments_and_blanks() {
+        let file = with_temp_codeowners("# comment\n\nsrc/main.rs @bob\n");
+        let (rules, _) = parse_codeowners_file(file.path().to_str().unwrap()).unwrap();
+        assert_eq!(rules.len(), 1);
+        assert_eq!(rules[0].owners, vec!["@bob"]);
+    }
+
+    #[test]
+    fn detects_invalid_glob() {
+        let file = with_temp_codeowners("docs/[ @bad\n");
+        let (_, invalids) = parse_codeowners_file(file.path().to_str().unwrap()).unwrap();
+        assert_eq!(invalids.len(), 1);
+        assert!(invalids[0].content.contains("docs/["));
+    }
+
+    #[test]
+    fn trims_leading_trailing_slashes() {
+        let file = with_temp_codeowners("/foo/ @team\n");
+        let (rules, _) = parse_codeowners_file(file.path().to_str().unwrap()).unwrap();
+        assert_eq!(rules[0].pattern, "foo");
+        assert_eq!(rules[0].original_path, "/foo/");
+    }
+
+    #[test]
+    fn parses_multiple_owners() {
+        let file = with_temp_codeowners("src/ @alice @bob\n");
+        let (rules, _) = parse_codeowners_file(file.path().to_str().unwrap()).unwrap();
+        assert_eq!(rules[0].owners, vec!["@alice", "@bob"]);
+    }
+}
