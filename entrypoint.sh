@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# forward all arguments to the validator
-exec codeowners-validation "$@"
+export INPUT_CHECKS="${1:-all}"
 
+# Run the validator binary
+echo "🔍 Running CODEOWNERS validation with checks: $INPUT_CHECKS"
+exec codeowners-validation

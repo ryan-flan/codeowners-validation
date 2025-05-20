@@ -17,6 +17,7 @@ push = true
 publish = true
 
 [dependencies]
+clap = { version = "4.5", features = ["derive", "env"] }
 globset = "0.4.16"
 ignore = "0.4.23"
 walkdir = "2.5.0"

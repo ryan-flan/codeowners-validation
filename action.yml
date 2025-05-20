@@ -3,7 +3,7 @@ description: 'GitHub Action to validate CODEOWNERS in the repository'
 
 inputs:
   checks:
-    description: 'Select the checks to run (comma-separated)'
+    description: 'Comma-separated list of checks to run. Options: exists, duplicate_patterns. Default: all.'
     required: false
     default: 'all'
     type: string
