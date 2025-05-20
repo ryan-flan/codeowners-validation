@@ -1,7 +1,6 @@
 use codeowners_validation::parser::parse_codeowners_file;
 use codeowners_validation::validators::validator::{run_validator, ValidatorArgs};
-use std::env;
-use std::io;
+use std::{env, io, path::Path};
 
 fn main() -> io::Result<()> {
     let validator_args = match env::var("INPUT_CHECKS") {
@@ -10,22 +9,32 @@ fn main() -> io::Result<()> {
     };
 
     let codeowners_file_path = ".github/CODEOWNERS";
+    let path = Path::new(codeowners_file_path);
 
-    // Parse the CODEOWNERS file
+    if !path.exists() {
+        eprintln!("❌ ERROR: CODEOWNERS file not found at {:?}", path);
+        return Err(io::Error::new(
+            io::ErrorKind::NotFound,
+            format!("CODEOWNERS file not found at {:?}", path),
+        ));
+    }
+
     let (rules, invalid_lines) = match parse_codeowners_file(codeowners_file_path) {
         Ok((rules, invalid_lines)) => (rules, invalid_lines),
         Err(e) => {
-            eprintln!("Error parsing CODEOWNERS file: {}", e);
-            return Err(e);
+            eprintln!("❌ Error parsing CODEOWNERS file: {}", e);
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("Failed to parse CODEOWNERS file: {}", e),
+            ));
         }
     };
 
-    // Check for invalid lines in the CODEOWNERS file
     if !invalid_lines.is_empty() {
-        eprintln!("Invalid lines found in the CODEOWNERS file:");
+        eprintln!("⚠️  Invalid lines found in the CODEOWNERS file:");
         for invalid_line in invalid_lines {
             eprintln!(
-                "Line {}: {}",
+                " - Line {}: {}",
                 invalid_line.line_number, invalid_line.content
             );
         }
@@ -38,8 +47,7 @@ fn main() -> io::Result<()> {
     let failed_rules = run_validator(&validator_args, &rules);
 
     if !failed_rules.is_empty() {
-        eprintln!("The following rules failed validation:");
-        eprintln!();
+        eprintln!("❌ The following rules failed validation:\n");
         for (validator, rule) in &failed_rules {
             eprintln!("Validator: {}", validator);
             eprintln!("  Pattern: {}", rule.pattern);
@@ -47,11 +55,13 @@ fn main() -> io::Result<()> {
             eprintln!("    Owners: {:?}", rule.owners);
             eprintln!();
         }
+
         return Err(io::Error::new(
-            io::ErrorKind::InvalidData,
+            io::ErrorKind::Other,
             "Some rules failed validation",
         ));
     }
 
+    println!("✅ CODEOWNERS validation passed.");
     Ok(())
 }

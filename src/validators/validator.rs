@@ -39,7 +39,13 @@ pub fn run_validator(
     let validators: Vec<(&str, fn(&[CodeOwnerRule]) -> Vec<CodeOwnerRule>)> = vec![
         ("exists", |rules| {
             let repo_dir = Path::new(".");
-            validate_directory(repo_dir, rules).unwrap_or_default()
+            match validate_directory(repo_dir, rules) {
+                Ok(result) => result,
+                Err(err) => {
+                    eprintln!("❌ Error during 'exists' validation: {}", err);
+                    Vec::new()
+                }
+            }
         }),
         ("duplicate_patterns", validate_duplicates),
     ];
@@ -50,7 +56,8 @@ pub fn run_validator(
             || (name == "duplicate_patterns" && args.duplicate_patterns)
         {
             let now = time::Instant::now();
-            for rule in validator_fn(rules) {
+            let results = validator_fn(rules);
+            for rule in results {
                 failed_rules.push((name.to_string(), rule));
             }
             println!("{} validation run in {:?}", name, now.elapsed());
