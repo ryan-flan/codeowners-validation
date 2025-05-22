@@ -10,13 +10,15 @@ pub(crate) fn validate_duplicates(rules: &[CodeOwnerRule]) -> Vec<CodeOwnerRule>
         let is_original_path_duplicate = !original_path_set.insert(&rule.original_path);
         let is_pattern_duplicate = !pattern_set.insert(&rule.pattern);
 
-        if is_original_path_duplicate {
+        if is_original_path_duplicate || is_pattern_duplicate {
             duplicates.push(rule.clone());
-        } else if is_pattern_duplicate {
-            println!("Warning: Duplicate pattern found in the tools mutated pattern");
-            println!("Please raise an issue if this seems incorrect.");
-            println!("Pattern: {}", &rule.pattern);
-            println!("Original: {}", &rule.original_path);
+            // Only print a warning if it is the normalized duplicate.
+            if !is_original_path_duplicate && is_pattern_duplicate {
+                println!("Warning: Duplicate pattern found in the tools mutated pattern");
+                println!("Please raise an issue if this seems incorrect.");
+                println!("Pattern: {}", &rule.pattern);
+                println!("Original: {}", &rule.original_path);
+            }
         }
     }
 
@@ -26,53 +28,39 @@ pub(crate) fn validate_duplicates(rules: &[CodeOwnerRule]) -> Vec<CodeOwnerRule>
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::validators::duplicate_patterns::validate_duplicates;
+    use crate::parser::CodeOwnerRule;
     use globset::Glob;
 
-    fn create_rules() -> Vec<CodeOwnerRule> {
-        vec![
-            CodeOwnerRule {
-                pattern: "*.rs".to_string(),
-                owners: vec!["rust-team".to_string()],
-                original_path: "*.rs".to_string(),
-                glob: Glob::new("**/*.rs").unwrap(),
-            },
-            CodeOwnerRule {
-                pattern: "examples/*".to_string(),
-                owners: vec!["examples-team".to_string()],
-                original_path: "examples/*".to_string(),
-                glob: Glob::new("**/examples/*").unwrap(),
-            },
-            CodeOwnerRule {
-                pattern: "config.rs".to_string(),
-                owners: vec!["config-team".to_string()],
-                original_path: "config.rs".to_string(),
-                glob: Glob::new("**/config.rs").unwrap(),
-            },
-        ]
+    fn rule(pattern: &str) -> CodeOwnerRule {
+        CodeOwnerRule {
+            pattern: pattern.to_string(),
+            original_path: pattern.to_string(),
+            owners: vec!["@owner".to_string()],
+            glob: Glob::new(&format!("**/{}", pattern)).unwrap(),
+        }
     }
 
     #[test]
-    fn test_validate_duplicates_no_duplicates() {
-        let rules = create_rules();
-
+    fn no_duplicates() {
+        let rules = vec![rule("a.txt"), rule("b.txt")];
         let result = validate_duplicates(&rules);
-
-        assert_eq!(result.len(), 0);
+        assert!(result.is_empty());
     }
 
     #[test]
-    fn test_validate_duplicates_with_duplicates() {
-        let mut rules = create_rules();
-
-        // Add duplicate rules
-        rules.push(rules[0].clone());
-        rules.push(rules[1].clone());
-
+    fn detects_exact_duplicates() {
+        let rules = vec![rule("src/"), rule("src/")];
         let result = validate_duplicates(&rules);
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0].pattern, "src/");
+    }
 
-        assert_eq!(result.len(), 2);
-        assert!(result.contains(&rules[0]));
-        assert!(result.contains(&rules[1]));
+    #[test]
+    fn normalized_duplicates_detected() {
+        let mut a = rule("/docs");
+        a.pattern = "docs".to_string(); // simulate normalization ("/docs" turns into "docs")
+        let b = rule("docs");
+        let result = validate_duplicates(&[a, b]);
+        assert_eq!(result.len(), 1);
     }
 }
