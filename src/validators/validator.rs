@@ -66,3 +66,64 @@ pub fn run_validator(
 
     failed_rules
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::parser::CodeOwnerRule;
+    use globset::Glob;
+
+    fn rule(pattern: &str) -> CodeOwnerRule {
+        CodeOwnerRule {
+            pattern: pattern.to_string(),
+            original_path: pattern.to_string(),
+            owners: vec!["@x".to_string()],
+            glob: Glob::new(&format!("**/{}", pattern)).unwrap(),
+        }
+    }
+
+    #[test]
+    fn runs_all_by_default() {
+        let rules = vec![rule("missing1.txt"), rule("dup.txt"), rule("dup.txt")];
+        let args = ValidatorArgs::default();
+        let failures = run_validator(&args, &rules);
+        assert!(!failures.is_empty());
+    }
+
+    #[test]
+    fn runs_only_exists_when_enabled() {
+        let rules = vec![rule("notfound.txt")];
+        let args = ValidatorArgs {
+            exists: true,
+            duplicate_patterns: false,
+        };
+        let failures = run_validator(&args, &rules);
+        assert_eq!(failures.len(), 1);
+        assert_eq!(failures[0].0, "exists");
+    }
+
+    #[test]
+    fn runs_only_duplicates_when_enabled() {
+        let rules = vec![rule("x.txt"), rule("x.txt")];
+        let args = ValidatorArgs {
+            exists: false,
+            duplicate_patterns: true,
+        };
+        let failures = run_validator(&args, &rules);
+        assert_eq!(failures.len(), 1);
+        assert_eq!(failures[0].0, "duplicate_patterns");
+    }
+
+    #[test]
+    fn from_env_splits_checks() {
+        let args = ValidatorArgs::from_env("exists,duplicate_patterns");
+        assert!(args.exists);
+        assert!(args.duplicate_patterns);
+    }
+
+    #[test]
+    fn should_run_all_when_none_specified() {
+        let args = ValidatorArgs::default();
+        assert!(args.should_run_all());
+    }
+}
