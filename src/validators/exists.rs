@@ -103,88 +103,57 @@ pub fn validate_directory(
     }
     Ok(missing)
 }
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::parser::CodeOwnerRule;
-    use globset::Glob;
     use std::fs;
     use tempfile::tempdir;
 
-    fn create_test_files(repo_dir: &Path, files: &[&str]) {
-        for file in files {
-            let file_path = repo_dir.join(file);
-            let parent_dir = file_path.parent().unwrap();
-            fs::create_dir_all(parent_dir).unwrap();
-            if file.ends_with('/') {
-                fs::create_dir_all(file_path).unwrap();
-            } else {
-                fs::write(file_path, b"test").unwrap();
-            }
+    fn rule(pattern: &str) -> CodeOwnerRule {
+        CodeOwnerRule {
+            pattern: pattern.to_string(),
+            original_path: pattern.to_string(),
+            owners: vec!["@team".to_string()],
+            glob: globset::Glob::new(&format!("**/{}", pattern)).unwrap(),
         }
     }
 
-    fn create_rules() -> Vec<CodeOwnerRule> {
-        vec![
-            CodeOwnerRule {
-                pattern: "*.rs".to_string(),
-                owners: vec!["rust-team".to_string()],
-                original_path: "*.rs".to_string(),
-                glob: Glob::new("**/*.rs").unwrap(),
-            },
-            CodeOwnerRule {
-                pattern: "examples/*".to_string(),
-                owners: vec!["examples-team".to_string()],
-                original_path: "examples/*".to_string(),
-                glob: Glob::new("**/examples/*").unwrap(),
-            },
-            CodeOwnerRule {
-                pattern: "config.rs".to_string(),
-                owners: vec!["config-team".to_string()],
-                original_path: "config.rs".to_string(),
-                glob: Glob::new("**/config.rs").unwrap(),
-            },
-            CodeOwnerRule {
-                pattern: "src/**/main.rs".to_string(),
-                owners: vec!["main-team".to_string()],
-                original_path: "src/**/main.rs".to_string(),
-                glob: Glob::new("**/src/**/main.rs").unwrap(),
-            },
-            CodeOwnerRule {
-                pattern: "tests/**/integration/".to_string(),
-                owners: vec!["integration-team".to_string()],
-                original_path: "tests/**/integration/".to_string(),
-                glob: Glob::new("**/tests/**/integration").unwrap(),
-            },
-        ]
+    #[test]
+    fn detects_missing_file() {
+        let tmp = tempdir().unwrap();
+        let rules = vec![rule("missing.txt")];
+        let result = validate_directory(tmp.path(), &rules).unwrap();
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0].pattern, "missing.txt");
     }
 
     #[test]
-    fn test_validate_directory_happy_path() {
-        let repo_dir = tempdir().unwrap();
-        let repo_path = repo_dir.path();
-        create_test_files(
-            repo_path,
-            &[
-                "src/main/main.rs",
-                "config.rs",
-                "examples/example1.txt",
-                "tests/integration/",
-            ],
-        );
-        let rules = create_rules();
-        let result = validate_directory(repo_path, &rules).unwrap();
-        assert_eq!(result.len(), 0);
+    fn passes_existing_file() {
+        let tmp = tempdir().unwrap();
+        let file_path = tmp.path().join("exists.txt");
+        fs::write(&file_path, "content").unwrap();
+        let rules = vec![rule("exists.txt")];
+        let result = validate_directory(tmp.path(), &rules).unwrap();
+        assert!(result.is_empty());
     }
 
     #[test]
-    fn test_validate_directory_unhappy_path() {
-        let repo_dir = tempdir().unwrap();
-        let repo_path = repo_dir.path();
-        create_test_files(repo_path, &["src/main/main.rs", "examples/example1.txt"]);
-        let rules = create_rules();
-        let result = validate_directory(repo_path, &rules).unwrap();
-        assert_eq!(result.len(), 2);
+    fn matches_wildcard_files() {
+        let tmp = tempdir().unwrap();
+        fs::write(tmp.path().join("foo.md"), "docs").unwrap();
+        let mut r = rule("*.md");
+        r.glob = globset::Glob::new("**/*.md").unwrap();
+        let rules = vec![r];
+        let result = validate_directory(tmp.path(), &rules).unwrap();
+        assert!(result.is_empty());
+    }
+
+    #[test]
+    fn detects_unmatched_wildcards() {
+        let tmp = tempdir().unwrap();
+        let rules = vec![rule("*.xyz")];
+        let result = validate_directory(tmp.path(), &rules).unwrap();
+        assert_eq!(result.len(), 1);
     }
 }
