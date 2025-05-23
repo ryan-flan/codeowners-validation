@@ -1,76 +1,180 @@
-![Crates.io](https://img.shields.io/crates/v/codeowners-validation)
-![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/ryan-flan/codeowners-validation/ci.yml)
-
 # CODEOWNERS Validation
 
-Optimised for large repos or monorepos, ensuring files exist for rules specified in the CODEOWNERS file.
+[![Crates.io](https://img.shields.io/crates/v/codeowners-validation?style=flat-square)](https://crates.io/crates/codeowners-validation)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/ryan-flan/codeowners-validation/ci.yml?style=flat-square)](https://github.com/ryan-flan/codeowners-validation/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/ryan-flan/codeowners-validation?style=flat-square)](https://github.com/ryan-flan/codeowners-validation/releases)
 
-Active checks:
-- Checks the files and directories mentioned in the `CODEOWNERS` file actually exist in the repository.
-- Check duplicate patterns
-  
-TODO:
-- Check files not owned
-- Check owners exist in GitHub
-- Check syntax
+A high-performance CODEOWNERS validator optimized for large repositories and monorepos. Written in Rust for maximum performance and minimal memory usage.
 
-## Currently useable as a GitHub Action
+## Features
 
-This GitHub Action validates the `CODEOWNERS` file in your repository to ensure that the specified code ownership rules are being followed. 
+### ✅ Active Checks
+- **File/Directory Existence**: Validates that all paths in CODEOWNERS exist in the repository
+- **Duplicate Pattern Detection**: Identifies duplicate ownership patterns
 
-## Usage
+### 🚧 Planned Features
+- Validate file ownership coverage (detect unowned files)
+- Verify GitHub owners exist and have repository access
+- Comprehensive syntax validation
+- Custom check configurations
 
-To use the CODEOWNERS Validation GitHub Action in your repository, follow these steps:
+## Performance
 
-- Inside the `.github/workflows` directory, create a new YAML file (e.g., `codeowners-validation.yml`) with the following content:
+Optimized for large CODEOWNERS files:
+- Handles 10,000+ rules efficiently
+- Minimal memory footprint
+- Parallel file system traversal
+- Early exit optimization for better performance
 
-   ```yaml
-   name: CODEOWNERS Validation
+## Installation
 
-   on:
-     push:
-       branches: [main]
-     pull_request:
-       branches: [main]
+### As a GitHub Action
 
-   jobs:
-     validate-codeowners:
-       runs-on: ubuntu-latest
+Add to your workflow (`.github/workflows/codeowners-validation.yml`):
 
-       steps:
-         - uses: actions/checkout@v4
+```yaml
+name: CODEOWNERS Validation
 
-         - name: Run CODEOWNERS Validation
-           uses: ryan-flan/codeowners-validation@v0.3.1
-           with:
-             # By default, it will run all validators, the syntax "exists,duplicate_patterns" also works.
-             checks: |
-               "exists"
-               "duplicate_patterns"
-   ```
-   
-Now, whenever a push or pull request is made to the main branch, the CODEOWNERS Validation GitHub Action will automatically run and validate the CODEOWNERS file.
-Action Inputs
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
-## Action inputs/outputs
+jobs:
+  validate-codeowners:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-The CODEOWNERS Validation GitHub Action currently doesn't require any inputs. It automatically looks for the CODEOWNERS file in the `.github/` directory of your repository. In future it's likely I will add options to:
+      - name: Run CODEOWNERS Validation
+        uses: ryan-flan/codeowners-validation@latest  # Use latest version
+        with:
+          checks: |
+            exists
+            duplicate_patterns
+```
 
-- Customise which checks are run
-- Point to different `CODEOWNERS` location
+### As a CLI Tool (Coming Soon)
 
-The CODEOWNERS Validation GitHub Action provides the following output:
+```bash
+# Install via cargo
+cargo install codeowners-validation
 
-The result of the CODEOWNERS file validation.
+# Run validation
+codeowners-validation --path .github/CODEOWNERS
+```
 
-It can have one of the following values:
-- success: The CODEOWNERS file is valid, and all the specified files and directories exist in the repository.
-- failure: The CODEOWNERS file is invalid, or some of the specified files or directories are missing in the repository.
+## Configuration
+
+### Action Inputs
+
+| Input | Description | Default | Required |
+|-------|-------------|---------|----------|
+| `checks` | Comma-separated list of checks to run | `all` | No |
+| `path` | Path to CODEOWNERS file | `.github/CODEOWNERS` | No |
+
+### Available Checks
+
+- `exists` - Validate all referenced files/directories exist
+- `duplicate_patterns` - Find duplicate ownership patterns
+- `all` - Run all available checks (default)
+
+### Action Outputs
+
+| Output | Description |
+|--------|-------------|
+| `result` | Validation result: `success` or `failure` |
+| `errors` | Detailed error messages (if any) |
+
+## Usage Examples
+
+### Basic Validation
+
+```yaml
+- uses: ryan-flan/codeowners-validation@v0.4.4
+```
+
+### Specific Checks Only
+
+```yaml
+- uses: ryan-flan/codeowners-validation@v0.4.4
+  with:
+    checks: exists
+```
+
+### Custom CODEOWNERS Location
+
+```yaml
+- uses: ryan-flan/codeowners-validation@v0.4.4
+  with:
+    path: docs/CODEOWNERS
+    checks: exists,duplicate_patterns
+```
+
+## Development
+
+### Prerequisites
+
+- Rust 1.70+ 
+- Cargo
+
+### Building
+
+```bash
+# Clone the repository
+git clone https://github.com/ryan-flan/codeowners-validation
+cd codeowners-validation
+
+# Build release version
+cargo build --release
+
+# Run tests
+cargo test
+
+# Run benchmarks
+cargo bench
+```
+
+### Performance Testing
+
+The project includes comprehensive benchmarks for large CODEOWNERS files:
+
+```bash
+# Run all benchmarks
+cargo bench
+
+# Run specific benchmark
+cargo bench --bench benchmark 10k_rules
+```
 
 ## Contributing
 
-If you have any suggestions, bug reports, or feature requests, please open an issue or submit a pull request on the GitHub repository.
+Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+
+### Areas for Contribution
+
+1. Additional validation checks
+2. Performance optimizations
+3. Better error messages
+4. Documentation improvements
+5. Test coverage
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- Inspired by the need for fast CODEOWNERS validation in large monorepos
+- Built with [Rust](https://www.rust-lang.org/) for performance
+- Uses [globset](https://crates.io/crates/globset) for efficient pattern matching
+
+---
+
+### See Also
+
+- [GitHub CODEOWNERS Documentation](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners)
+- [Crates.io Package](https://crates.io/crates/codeowners-validation)
+- [GitHub Marketplace](https://github.com/marketplace/actions/validate-codeowners)
