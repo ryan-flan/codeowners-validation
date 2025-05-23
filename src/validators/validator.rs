@@ -18,6 +18,10 @@ impl ValidatorArgs {
             match arg.trim() {
                 "exists" => args.exists = true,
                 "duplicate_patterns" => args.duplicate_patterns = true,
+                "all" => {
+                    args.exists = true;
+                    args.duplicate_patterns = true;
+                }
                 _ => (),
             }
         }
@@ -57,10 +61,18 @@ pub fn run_validator(
         {
             let now = time::Instant::now();
             let results = validator_fn(rules);
+            let num_failures = results.len();
+
             for rule in results {
                 failed_rules.push((name.to_string(), rule));
             }
-            println!("{} validation run in {:?}", name, now.elapsed());
+
+            println!(
+                "✓ {} validation completed in {:?} ({} issues found)",
+                name,
+                now.elapsed(),
+                num_failures
+            );
         }
     }
 
@@ -71,20 +83,22 @@ pub fn run_validator(
 mod tests {
     use super::*;
     use crate::parser::CodeOwnerRule;
-    use globset::Glob;
 
-    fn rule(pattern: &str) -> CodeOwnerRule {
+    fn rule(pattern: &str, original: &str) -> CodeOwnerRule {
         CodeOwnerRule {
-            pattern: pattern.to_string(),
-            original_path: pattern.to_string(),
+            pattern: pattern.trim_matches('/').to_string(),
+            original_path: original.to_string(),
             owners: vec!["@x".to_string()],
-            glob: Glob::new(&format!("**/{}", pattern)).unwrap(),
         }
     }
 
     #[test]
     fn runs_all_by_default() {
-        let rules = vec![rule("missing1.txt"), rule("dup.txt"), rule("dup.txt")];
+        let rules = vec![
+            rule("missing1.txt", "missing1.txt"),
+            rule("dup.txt", "dup.txt"),
+            rule("dup.txt", "dup.txt"),
+        ];
         let args = ValidatorArgs::default();
         let failures = run_validator(&args, &rules);
         assert!(!failures.is_empty());
@@ -92,7 +106,7 @@ mod tests {
 
     #[test]
     fn runs_only_exists_when_enabled() {
-        let rules = vec![rule("notfound.txt")];
+        let rules = vec![rule("notfound.txt", "notfound.txt")];
         let args = ValidatorArgs {
             exists: true,
             duplicate_patterns: false,
@@ -104,7 +118,7 @@ mod tests {
 
     #[test]
     fn runs_only_duplicates_when_enabled() {
-        let rules = vec![rule("x.txt"), rule("x.txt")];
+        let rules = vec![rule("x.txt", "x.txt"), rule("x.txt", "x.txt")];
         let args = ValidatorArgs {
             exists: false,
             duplicate_patterns: true,
@@ -122,8 +136,31 @@ mod tests {
     }
 
     #[test]
+    fn from_env_handles_all() {
+        let args = ValidatorArgs::from_env("all");
+        assert!(args.exists);
+        assert!(args.duplicate_patterns);
+    }
+
+    #[test]
+    fn from_env_handles_whitespace() {
+        let args = ValidatorArgs::from_env(" exists , duplicate_patterns ");
+        assert!(args.exists);
+        assert!(args.duplicate_patterns);
+    }
+
+    #[test]
     fn should_run_all_when_none_specified() {
         let args = ValidatorArgs::default();
         assert!(args.should_run_all());
+    }
+
+    #[test]
+    fn not_should_run_all_when_any_specified() {
+        let args = ValidatorArgs {
+            exists: true,
+            duplicate_patterns: false,
+        };
+        assert!(!args.should_run_all());
     }
 }
