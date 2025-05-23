@@ -1,6 +1,6 @@
 [package]
 name = "codeowners-validation"
-version = "0.4.5"
+version = "0.4.6"
 edition = "2021"
 authors = ["Ryan Flanagan"] 
 description = "A Rust library for validating CODEOWNERS files."

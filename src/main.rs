@@ -64,9 +64,7 @@ fn main() -> io::Result<()> {
             eprintln!();
         }
 
-        return Err(io::Error::other(
-            "Some rules failed validation",
-        ));
+        return Err(io::Error::other("Some rules failed validation"));
     }
 
     println!("✅ CODEOWNERS validation passed.");

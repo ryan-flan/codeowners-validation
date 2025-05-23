@@ -34,13 +34,15 @@ impl ValidatorArgs {
     }
 }
 
+type ValidatorFn = fn(&[CodeOwnerRule]) -> Vec<CodeOwnerRule>;
+
 pub fn run_validator(
     args: &ValidatorArgs,
     rules: &[CodeOwnerRule],
 ) -> Vec<(String, CodeOwnerRule)> {
     let mut failed_rules = Vec::new();
 
-    let validators: Vec<(&str, fn(&[CodeOwnerRule]) -> Vec<CodeOwnerRule>)> = vec![
+    let validators: Vec<(&str, ValidatorFn)> = vec![
         ("exists", |rules| {
             let repo_dir = Path::new(".");
             match validate_directory(repo_dir, rules) {
