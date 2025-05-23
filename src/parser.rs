@@ -1,6 +1,6 @@
 use globset::Glob;
 use std::fs::File;
-use std::io::{self, BufRead};
+use std::io::{self, BufRead, BufReader};
 
 #[derive(Eq, PartialEq, Clone)]
 pub struct CodeOwnerRule {
@@ -19,9 +19,9 @@ pub fn parse_codeowners_file(
     file_path: &str,
 ) -> io::Result<(Vec<CodeOwnerRule>, Vec<InvalidLine>)> {
     let file = File::open(file_path)?;
-    let reader = io::BufReader::new(file);
+    let reader = BufReader::with_capacity(64 * 1024, file);
 
-    let mut rules = Vec::new();
+    let mut rules = Vec::with_capacity(1000);
     let mut invalid_lines = Vec::new();
 
     for (line_number, line_result) in reader.lines().enumerate() {
@@ -33,6 +33,10 @@ pub fn parse_codeowners_file(
             }
 
             let parts: Vec<&str> = line.split_whitespace().collect();
+            if parts.is_empty() {
+                continue;
+            }
+
             let pattern = parts[0].trim_matches('/').to_string();
             let owners = parts[1..].iter().map(|s| s.to_string()).collect();
             let original_path = parts[0].to_string();
@@ -59,6 +63,9 @@ pub fn parse_codeowners_file(
             rules.push(rule);
         }
     }
+
+    rules.shrink_to_fit();
+    invalid_lines.shrink_to_fit();
 
     Ok((rules, invalid_lines))
 }
