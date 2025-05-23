@@ -206,9 +206,9 @@ fn benchmark_pattern_memory_impact(c: &mut Criterion) {
         ),
         (
             "wildcards",
-            Box::new(|n| create_wildcard_heavy_codeowners(n)),
+            Box::new(create_wildcard_heavy_codeowners),
         ),
-        ("deep_paths", Box::new(|n| create_deep_path_codeowners(n))),
+        ("deep_paths", Box::new(create_deep_path_codeowners)),
     ];
 
     for (name, create_fn) in patterns {

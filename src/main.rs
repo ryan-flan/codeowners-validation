@@ -64,8 +64,7 @@ fn main() -> io::Result<()> {
             eprintln!();
         }
 
-        return Err(io::Error::new(
-            io::ErrorKind::Other,
+        return Err(io::Error::other(
             "Some rules failed validation",
         ));
     }

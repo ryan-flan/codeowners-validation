@@ -79,7 +79,7 @@ pub fn create_realistic_repo(scale: usize) -> tempfile::TempDir {
 
     for (i, base) in structures.iter().enumerate() {
         for j in 0..scale {
-            let file_types = vec!["ts", "tsx", "js", "jsx", "json", "md", "yml"];
+            let file_types = ["ts", "tsx", "js", "jsx", "json", "md", "yml"];
             let file_type = file_types[(i + j) % file_types.len()];
 
             let path = format!("{}feature{}/file{}.{}", base, j % 10, j, file_type);

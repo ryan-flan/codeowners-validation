@@ -50,7 +50,7 @@ pub fn parse_codeowners_file(
             }
 
             // Check for invalid glob patterns
-            if let Err(_) = validate_pattern(&pattern, &original_path) {
+            if validate_pattern(&pattern, &original_path).is_err() {
                 let invalid_line = InvalidLine {
                     line_number: line_number + 1,
                     content: line,

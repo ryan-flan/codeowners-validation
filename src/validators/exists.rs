@@ -153,8 +153,8 @@ pub fn validate_directory(
                 let path = dir_entry.path();
 
                 // Skip .git directory
-                if dir_entry.file_type().map_or(false, |ft| ft.is_dir())
-                    && path.file_name().map_or(false, |name| name == ".git")
+                if dir_entry.file_type().is_some_and(|ft| ft.is_dir())
+                    && path.file_name().is_some_and(|name| name == ".git")
                 {
                     return WalkState::Skip;
                 }
