@@ -1,0 +1,34 @@
+# Configuration for cargo-release
+
+# Allow releases from main branch
+allow-branch = ["main"]
+
+# Automatically push changes and tags
+push = true
+push-remote = "origin"
+push-options = ["--follow-tags"]
+
+# Create and push tags
+tag = true
+tag-prefix = "v"
+tag-name = "v{{version}}"
+tag-message = "Release {{version}}"
+
+# Publish to crates.io
+publish = true
+
+# Create GitHub releases
+release = true
+
+# Commit messages
+pre-release-commit-message = "chore: release {{version}}"
+
+# Sign commits and tags (set to true if you have GPG set up)
+sign-commit = false
+sign-tag = false
+
+# Verify the package builds before releasing
+verify = true
+
+# Run tests before release
+pre-release-hook = ["cargo", "test", "--release"]
