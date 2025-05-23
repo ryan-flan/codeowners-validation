@@ -1,20 +1,40 @@
 name: 'Validate CODEOWNERS'
-description: 'GitHub Action to validate CODEOWNERS in the repository'
+description: 'High-performance GitHub Action to validate CODEOWNERS files in your repository'
+author: 'Ryan Flanagan'
 
 inputs:
   checks:
-    description: 'Comma-separated list of checks to run. Options: exists, duplicate_patterns. Default: all.'
+    description: |
+      Comma-separated list of checks to run.
+      Options: exists, duplicate_patterns, all
+      Default: all
     required: false
     default: 'all'
     type: string
+  
+  path:
+    description: 'Path to CODEOWNERS file (default: .github/CODEOWNERS)'
+    required: false
+    default: '.github/CODEOWNERS'
+    type: string
+
+outputs:
+  validation-passed:
+    description: 'Whether validation passed (true/false)'
 
 runs:
   using: 'docker'
-  image: 'docker://ghcr.io/ryan-flan/codeowners-validation:v0.4.4'
+  image: 'docker://ghcr.io/ryan-flan/codeowners-validation:latest'
   args:
+    - '--checks'
     - ${{ inputs.checks }}
+    - '--path'
+    - ${{ inputs.path }}
+  env:
+    INPUT_CHECKS: ${{ inputs.checks }}
+    INPUT_PATH: ${{ inputs.path }}
+    CODEOWNERS_THREADS: '2'  # Limit threads for CI environment
 
 branding:
   icon: 'shield'
-  color: 'orange'
-
+  color: 'green'
