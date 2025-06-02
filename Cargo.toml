@@ -14,7 +14,7 @@ readme = "README.md"
 clap = { version = "4.5", features = ["derive", "env"] }
 globset = "0.4.16"
 ignore = "0.4.23"
-num_cpus = "1.16.0"
+num_cpus = "1.17.0"
 parking_lot = "0.12.3"
 rustc-hash = "2.1.1"
 
