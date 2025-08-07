@@ -1,11 +1,11 @@
 # CODEOWNERS Validation
 
-[![Crates.io](https://img.shields.io/crates/v/codeowners-validation?style=flat-square)](https://crates.io/crates/codeowners-validation)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/ryan-flan/codeowners-validation?style=flat-square)](https://golang.org/)
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/ryan-flan/codeowners-validation/ci.yml?style=flat-square)](https://github.com/ryan-flan/codeowners-validation/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/ryan-flan/codeowners-validation?style=flat-square)](https://github.com/ryan-flan/codeowners-validation/releases)
 
-A high-performance CODEOWNERS validator optimized for large repositories and monorepos. Written in Rust for maximum performance and minimal memory usage.
+A high-performance CODEOWNERS validator optimized for large repositories and monorepos. Written in Go for excellent performance, cross-platform support, and easy deployment.
 
 ## Features
 
@@ -56,11 +56,15 @@ jobs:
             duplicate_patterns
 ```
 
-### As a CLI Tool (Coming Soon)
+### As a CLI Tool
 
 ```bash
-# Install via cargo
-cargo install codeowners-validation
+# Install via go (requires Go 1.21+)
+go install github.com/ryan-flan/codeowners-validation/cmd@latest
+
+# Or download from releases
+curl -L https://github.com/ryan-flan/codeowners-validation/releases/latest/download/codeowners-validation-linux-amd64 -o codeowners-validation
+chmod +x codeowners-validation
 
 # Run validation
 codeowners-validation --path .github/CODEOWNERS
@@ -117,8 +121,8 @@ codeowners-validation --path .github/CODEOWNERS
 
 ### Prerequisites
 
-- Rust 1.70+ 
-- Cargo
+- Go 1.21+ 
+- Git
 
 ### Building
 
@@ -127,27 +131,26 @@ codeowners-validation --path .github/CODEOWNERS
 git clone https://github.com/ryan-flan/codeowners-validation
 cd codeowners-validation
 
-# Build release version
-cargo build --release
+# Download dependencies
+go mod download
+
+# Build
+go build -o codeowners-validation ./cmd
 
 # Run tests
-cargo test
+go test ./...
 
-# Run benchmarks
-cargo bench
+# Run tests with coverage
+go test -v -race -coverprofile=coverage.out ./...
+
+# Run linting
+go vet ./...
+gofmt -s -l .
 ```
 
 ### Performance Testing
 
-The project includes comprehensive benchmarks for large CODEOWNERS files:
-
-```bash
-# Run all benchmarks
-cargo bench
-
-# Run specific benchmark
-cargo bench --bench benchmark 10k_rules
-```
+The project includes comprehensive tests for large CODEOWNERS files. You can create your own performance tests by generating large CODEOWNERS files and measuring validation time.
 
 ## Contributing
 
@@ -168,13 +171,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Acknowledgments
 
 - Inspired by the need for fast CODEOWNERS validation in large monorepos
-- Built with [Rust](https://www.rust-lang.org/) for performance
-- Uses [globset](https://crates.io/crates/globset) for efficient pattern matching
+- Built with [Go](https://golang.org/) for excellent performance and cross-platform support
+- Uses [doublestar](https://github.com/bmatcuk/doublestar) for efficient glob pattern matching
+- CLI built with [Cobra](https://github.com/spf13/cobra) for great user experience
 
 ---
 
 ### See Also
 
 - [GitHub CODEOWNERS Documentation](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners)
-- [Crates.io Package](https://crates.io/crates/codeowners-validation)
+- [Go Package Documentation](https://pkg.go.dev/github.com/ryan-flan/codeowners-validation)
 - [GitHub Marketplace](https://github.com/marketplace/actions/validate-codeowners)
